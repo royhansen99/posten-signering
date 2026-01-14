@@ -1,0 +1,42 @@
+{
+    "version": "0.0.1",
+    "name": "royhansen/posten-signering",
+    "description": "A library for preparing/signing pdfs and sending/receiving data from the digipost (posten signering) api.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Roy Hansen",
+            "email": "roy@royhansen.no"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "libs/requests",
+            "options": {
+                "symlink": false
+            }
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "royhansen\\PostenSignering\\": "src"
+        }
+    },
+    "require": {
+        "robrichards/xmlseclibs": "^3.0",
+        "rmccue/requests": "@dev"
+    },
+    "scripts": {
+        "test": "php vendor/bin/phpunit --exclude-group xmlValidation,api --bootstrap vendor/autoload.php tests/",
+        "test-xml": "php vendor/bin/phpunit --group xmlValidation --bootstrap vendor/autoload.php tests/",
+        "test-api": "php vendor/bin/phpunit --group api --bootstrap vendor/autoload.php tests/",
+        "test-all": "php vendor/bin/phpunit --bootstrap vendor/autoload.php tests/",
+        "test-coverage": "php vendor/bin/phpunit --bootstrap vendor/autoload.php tests/ --coverage-html resources/coverage/",
+        "phpstan": "php vendor/bin/phpstan --level=10 analyse src tests"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5"
+    }
+}
