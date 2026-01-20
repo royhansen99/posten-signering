@@ -1,0 +1,4 @@
+parameters:
+    ignoreErrors:
+        - '#Cannot call method (appendChild|createElement|createElementNS)\(\) on DOM(Element|Document)\|null.#'
+        - '#Cannot access property \$ownerDocument on DOM(Element|Document)\|null.#'

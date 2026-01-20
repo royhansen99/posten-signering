@@ -29,10 +29,13 @@ class SignaturePackageManifest {
     $signer = $this->doc->createElementNS(self::NAMESPACE, 'signer');
     $this->doc->documentElement->appendChild($signer);
 
-    if($identifierType == self::IDENTIFIER_PERSONAL_ID) {
-      $id = $this->doc->createElementNS(self::NAMESPACE, 'personal-identification-number', $identifier);
-    } else if($identifierType == self::IDENTIFIER_REFERENCE) {
-      $id = $this->doc->createElementNS(self::NAMESPACE, 'signer-identifier', $identifier);
+    switch($identifierType) {
+      case self::IDENTIFIER_PERSONAL_ID:
+        $id = $this->doc->createElementNS(self::NAMESPACE, 'personal-identification-number', $identifier);
+        break;
+      case self::IDENTIFIER_REFERENCE:
+      default:
+        $id = $this->doc->createElementNS(self::NAMESPACE, 'signer-identifier', $identifier);
     }
 
     $signer->appendChild($id);

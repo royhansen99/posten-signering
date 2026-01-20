@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace royhansen\PostenSignering;
 
-use Exception, SimpleXMLElement, Requests;
+use Exception, SimpleXMLElement;
+
+enum RequestMethod: string {
+  case POST = "POST";
+  case GET = "GET";
+}
 
 class DigipostAPI {
   private const DIRECT_SIGNATURE_URL_PATH = '/direct/signature-jobs';
@@ -16,14 +21,7 @@ class DigipostAPI {
 
   private string $organization;
   private string $environment;
-
-  /**
-    * @var array{
-    *   transport: string, verifyname: string, verify: string,
-    *   certificate: string, key: string, passphrase: ?string
-    * }
-   */
-  private array $options;
+  private Request $request;
 
   public function __construct(string $organization, string $certificate, string $key,
     string $ca, ?string $passphrase = null, string $environment = 'production'
@@ -34,17 +32,7 @@ class DigipostAPI {
 
     $this->environment = $environment;
     $this->organization = $organization;
-
-    $options = [
-      'transport' => 'Requests_Transport_fsockopen',
-      'verifyname' => $this->getDigipostOrganization(),
-      'verify' => $ca,
-      'certificate' => $certificate,
-      'key' => $key,
-      'passphrase' => $passphrase
-    ];
-
-    $this->options = $options;
+    $this->request = new Request($ca, $certificate, $key, $this->getDigipostOrganization(), $passphrase);
   }
 
   private function getDigipostOrganization(): string {
@@ -70,36 +58,6 @@ class DigipostAPI {
     }
 
     return $url . "/" . $this->organization;
-  }
-
-  /**
-   * @param ?array<string, string> $headers 
-   */
-  private function request(string $type, string $url, ?array $headers = null, ?string $body = null, string $requireContentType = 'application/xml'): string {
-    $headers_default = $requireContentType ? ['Accept' => $requireContentType] : [];
-    $headers = $headers ? array_merge($headers_default, $headers) : $headers_default;
-
-    if($type === 'post') {
-      $request = Requests::post($url, $headers, $body, $this->options);
-    } else if($type === 'get') {
-      $request = Requests::get($url, $headers, $this->options);
-    } else {
-      throw new Exception("Invalid value for \"type\": \"$type\".");
-    }
-
-    if(!$request->success) {
-      throw new Exception("HTTP response error received,  code: \"{$request->status_code}\", body: \"{$request->body}\"");
-    }
-
-    if($requireContentType) {
-      if(!isset($request->headers['content-type']) || !is_string($request->headers['content-type'])) {
-        throw new Exception("Invalid HTTP response, header field \"content-type\" is missing or not a string. body: \"{$request->body}\"");
-      } else if($requireContentType !== $request->headers['content-type']) {
-        throw new Exception("Invalid HTTP response, invalid value in header field \"content-type\", value \"{$request->headers['content-type']}\". Body: \"{$request->body}\"");
-      }
-    }
-
-    return (string)$request->body;
   }
 
   /**
@@ -160,7 +118,7 @@ class DigipostAPI {
 		$body .= "--$boundary--\r\n\r\n";
 		$headers['Content-Length'] = (string)strlen($body);
 
-    $post = $this->request('post', $this->getDigipostAPIUrl() . self::DIRECT_SIGNATURE_URL_PATH, $headers, $body);
+    $post = $this->request->post($this->getDigipostAPIUrl() . self::DIRECT_SIGNATURE_URL_PATH, 'application/xml', $headers, $body);
 
     $data = $this->getValuesFromXml($post, ['signature-job-id', 'redirect-url', 'status-url']);
 
@@ -171,24 +129,24 @@ class DigipostAPI {
    * @return array<string, string>
    */
   public function getSignatureJobStatus(string $url, string $statusToken): array {
-    $get = $this->request('get', "$url?status_query_token=$statusToken");
+    $get = $this->request->get("$url?status_query_token=$statusToken", 'application/xml');
     $data = $this->getValuesFromXml($get, ['signature-job-id', 'signature-job-status', 'status', 'confirmation-url'], ['pades-url', 'xades-url']);
 
     return $data;
   }
 
   public function confirmJob(string $url): bool {
-    $this->request('post', $url, null, null, '');
+    $this->request->post($url, 'application/xml');
 
     return true;
   }
 
   public function getXades(string $url): string {
-    return $this->request('get', $url, null, null, 'application/xml');
+    return $this->request->get($url, 'application/xml');
   }
 
   public function getPades(string $url): string {
-    return $this->request('get', $url, null, null, 'application/octet-stream');
+    return $this->request->get($url, 'application/octet-stream');
   }
 
   public function getSigningTimeFromXades(string $content): ?string {

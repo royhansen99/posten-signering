@@ -6,11 +6,6 @@ The signature service is used by companies to request digital signatures from th
 This is a pretty old project that I decided to revive.  
 I've added stronger typings but have not tested my changes against the Posten API.  
 
-This library includes a customized fork of `rmccue/requests`.  
-I could not find a http library that would allow you to manually specify a common-name to  
-verify ssl against, so I decided to manually fork and modify an existing library.  
-This is a special requirement for the posten API.
-
 Read more about `Posten Signering` here:  
 https://signering.posten.no/virksomhet/api
 
@@ -97,16 +92,32 @@ $api->confirmJob('https://posten-confirmation-url');
 # Testing 
 The library contains a number of tests (phpunit) that can be run to ensure that everything works as expected.
 
-***In order to test against API, a file named '.test' must be created in the root directory of the library with the following content:***
+***In order to test against the posten-norge-api, or to test the ssl implementation, a file named '.test' must be created in the root directory of the library with the following content:***
 ```
 .test:
+# The organization number of your certificate.
+organization=organization-number
+
+# Your certificate files from buypass/commfides (testing).
+# For the `test-ssl` test, these values can be set to a self-signed
+# certificate you generate yourself.
 certificate=resources/private/cert.pem
 key=resources/private/key.pem
+password=key-password-here
+
+# If you are running `test-ssl`, the ca value should be set to the issuer-ca
+# of the url below.
+# Otherwise if doing api testing against posten, it should be set to the CA
+# you received from buypass/commfides (testing).
 ca=resources/private/ca.pem
-password=key-password
-organization=organization-number
+
+# These are only used for the ssl implementation test, and does not need to
+# be set to posten-api endpoints, it could instead be any ssl site.
+url=https://some-https-url
+url_common_name=a-common-name-to-the-server-certiciate-against
 ```
 The paths must point to existing certificate files that can for example be placed in the folder "resources/private/".
+
 
 ***Run tests with composer:***
 ```
@@ -117,16 +128,16 @@ composer test
 # Test creation of signatures.xml and manifest.xml and validate against XML schema.
 composer test-xml
 
+# Test the custom https implementation
+composer test-ssl
+
 # Test calls to the Posten signing API.
 composer test-api
-
-# Run all tests
-composer test-all
 
 # Run all tests and generate test statistics
 composer test-coverage
 
-# Run phpstan
-composer phpstan
+# Linter (phpstan) 
+composer lint 
 #####
 ```

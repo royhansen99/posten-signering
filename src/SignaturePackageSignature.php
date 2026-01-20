@@ -139,7 +139,16 @@ class SignaturePackageSignature {
 
     $digestValue = $objDSig->sigNode->ownerDocument->createElement('ns2:DigestValue', $this->certDigest);
     $certDigest->appendChild($digestValue);
-    $certInfo = openssl_x509_parse($this->signingCertificate);
+    $parseCert = openssl_x509_parse($this->signingCertificate);
+
+    /** 
+     * @var array{
+     *   serialNumber: string,
+     *   issuer: string | array<string, string>
+     * } $certInfo
+     */
+    $certInfo = $parseCert;
+
     $serialNumberValue = $certInfo['serialNumber'];
     if(is_array($certInfo['issuer'])) {
       $issuer = [];
@@ -181,6 +190,7 @@ class SignaturePackageSignature {
 
   private function sign(XMLSecurityDSig $objDSig, DOMDocument $doc): void {
     $objDSig->sign($this->objKey);
+    assert($doc->documentElement instanceof DOMElement);
     $objDSig->appendSignature($doc->documentElement);
   }
 

@@ -9,31 +9,22 @@
             "email": "roy@royhansen.no"
         }
     ],
-    "repositories": [
-        {
-            "type": "path",
-            "url": "libs/requests",
-            "options": {
-                "symlink": false
-            }
-        }
-    ],
     "autoload": {
+        "files": ["tests/getConfig.php"],
         "psr-4": {
             "royhansen\\PostenSignering\\": "src"
         }
     },
     "require": {
-        "robrichards/xmlseclibs": "^3.0",
-        "rmccue/requests": "@dev"
+        "robrichards/xmlseclibs": "^3.0"
     },
     "scripts": {
-        "test": "php vendor/bin/phpunit --exclude-group xmlValidation,api --bootstrap vendor/autoload.php tests/",
-        "test-xml": "php vendor/bin/phpunit --group xmlValidation --bootstrap vendor/autoload.php tests/",
-        "test-api": "php vendor/bin/phpunit --group api --bootstrap vendor/autoload.php tests/",
-        "test-all": "php vendor/bin/phpunit --bootstrap vendor/autoload.php tests/",
+        "test": "php vendor/bin/phpunit --display-warnings --exclude-group xmlValidation,api,ssl --bootstrap vendor/autoload.php tests/",
+        "test-xml": "php vendor/bin/phpunit --display-warnings --group xmlValidation --bootstrap vendor/autoload.php tests/",
+        "test-api": "php vendor/bin/phpunit --display-warnings --group api --bootstrap vendor/autoload.php tests/",
+        "test-ssl": "php vendor/bin/phpunit --display-warnings --group ssl --bootstrap vendor/autoload.php tests/",
         "test-coverage": "php vendor/bin/phpunit --bootstrap vendor/autoload.php tests/ --coverage-html resources/coverage/",
-        "phpstan": "php vendor/bin/phpstan --level=10 analyse src tests"
+        "lint": "php vendor/bin/phpstan --level=10 analyse src tests"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.1",
