@@ -16,6 +16,7 @@
         }
     },
     "require": {
+        "php": ">=7.0",
         "robrichards/xmlseclibs": "^3.0"
     },
     "scripts": {
